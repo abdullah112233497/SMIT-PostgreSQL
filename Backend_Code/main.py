@@ -85,6 +85,8 @@ def user_update(id:int, user_updated:User_structure,db:Session=Depends(get_db)):
     db.refresh(user)
     return{"Updated User":user}
     
+
+# Patch Endpoint:
 @app.patch("/single_update/{id}")
 def single_update(id: int, update_body: Single_Update, db: Session = Depends(get_db)):
     # 1. Fetch the existing user from the database
