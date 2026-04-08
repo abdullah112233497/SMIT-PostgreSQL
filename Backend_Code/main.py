@@ -86,19 +86,23 @@ def user_update(id:int, user_updated:User_structure,db:Session=Depends(get_db)):
     return{"Updated User":user}
     
 @app.patch("/single_update/{id}")
-def single_update(id: int, single_update: Single_Update, db: Session = Depends(get_db)):
+def single_update(id: int, update_body: Single_Update, db: Session = Depends(get_db)):
+    # 1. Fetch the existing user from the database
+    user_in_db = db.query(User).filter(User.id == id).first()
 
-    user = db.query(User).filter(User.id == id).first()
-
-    if not user:
+    if not user_in_db:
         raise HTTPException(status_code=404, detail="User not found")
 
-    update_data = single_update.model_dump(exclude_unset=True)
+    # 2. Convert the Pydantic model to a dictionary
+    # exclude_unset=True ensures we ONLY get the fields the user sent in the request
+    update_data = update_body.model_dump(exclude_unset=True)
 
+    # 3. Dynamically update only the provided fields
     for key, value in update_data.items():
-        setattr(user, key, value)
+        setattr(user_in_db, key, value)
 
+    # 4. Save changes
     db.commit()
-    db.refresh(user)
+    db.refresh(user_in_db)
 
-    return {"Single updation": user}
+    return {"Message": "User updated successfully", "User": user_in_db}
